@@ -11,26 +11,31 @@ const getBudgets = async (req, res) => {
 
     const budgets = await query('SELECT * FROM budgets WHERE user_id = ?', [userId]);
 
-    // Calculate actual spent per category for current month
+    // Calculate actual spent per category for current month using universal SUBSTR
     const categorySpent = await query(
       `SELECT category, SUM(amount) as spent 
        FROM expenses 
-       WHERE user_id = ? AND strftime('%Y-%m', date) = ? 
+       WHERE user_id = ? AND SUBSTR(date, 1, 7) = ? 
        GROUP BY category`,
       [userId, currentMonth]
     );
 
     const spentMap = {};
     categorySpent.forEach(item => {
-      spentMap[item.category] = item.spent;
+      spentMap[item.category] = parseFloat(item.spent || 0);
     });
 
-    const result = budgets.map(b => ({
-      ...b,
-      spent: spentMap[b.category] || 0,
-      remaining: b.monthly_limit - (spentMap[b.category] || 0),
-      percentUsed: Math.min(100, Math.round(((spentMap[b.category] || 0) / b.monthly_limit) * 100))
-    }));
+    const result = budgets.map(b => {
+      const limit = parseFloat(b.monthly_limit || 0);
+      const spent = spentMap[b.category] || 0;
+      return {
+        ...b,
+        monthly_limit: limit,
+        spent: spent,
+        remaining: limit - spent,
+        percentUsed: limit > 0 ? Math.min(100, Math.round((spent / limit) * 100)) : 0
+      };
+    });
 
     res.json({ budgets: result });
   } catch (err) {
@@ -54,12 +59,12 @@ const setBudget = async (req, res) => {
       return res.status(400).json({ message: 'Please enter a valid positive budget limit.' });
     }
 
-    // SQLite INSERT OR REPLACE / ON CONFLICT
+    // Universal ON CONFLICT handling
     await run(
       `INSERT INTO budgets (user_id, category, monthly_limit) 
        VALUES (?, ?, ?) 
        ON CONFLICT(user_id, category) 
-       DO UPDATE SET monthly_limit = excluded.monthly_limit`,
+       DO UPDATE SET monthly_limit = EXCLUDED.monthly_limit`,
       [userId, category.trim(), parsedLimit]
     );
 

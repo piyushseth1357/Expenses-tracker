@@ -1,7 +1,25 @@
 import axios from 'axios';
 
+// Flexibly read any environment key variation (VITEAPI, VITE_API_BASE_URL, VITE_API_URL, VITE_BACKEND_URL)
+const envURL = import.meta.env.VITE_API_BASE_URL ||
+               import.meta.env.VITEAPI ||
+               import.meta.env.VITE_API_URL ||
+               import.meta.env.VITE_BACKEND_URL ||
+               '/api';
+
+let baseURL = envURL.trim();
+
+// Ensure /api is appended if raw domain like https://backend.onrender.com was entered
+if (baseURL.startsWith('http')) {
+  // Strip trailing slashes
+  baseURL = baseURL.replace(/\/+$/, '');
+  if (!baseURL.endsWith('/api')) {
+    baseURL = baseURL + '/api';
+  }
+}
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api'
+  baseURL
 });
 
 // Interceptor to attach JWT Token to requests

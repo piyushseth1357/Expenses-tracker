@@ -7,11 +7,11 @@ const getDashboardSummary = async (req, res) => {
 
     // Total Income
     const incomeRow = await get('SELECT SUM(amount) as totalIncome FROM incomes WHERE user_id = ?', [userId]);
-    const totalIncome = incomeRow?.totalIncome || 0;
+    const totalIncome = parseFloat(incomeRow?.totalincome || incomeRow?.totalIncome || 0);
 
     // Total Expense
     const expenseRow = await get('SELECT SUM(amount) as totalExpense FROM expenses WHERE user_id = ?', [userId]);
-    const totalExpense = expenseRow?.totalExpense || 0;
+    const totalExpense = parseFloat(expenseRow?.totalexpense || expenseRow?.totalExpense || 0);
 
     // Remaining Balance
     const remainingBalance = totalIncome - totalExpense;
@@ -29,29 +29,33 @@ const getDashboardSummary = async (req, res) => {
       [userId]
     );
 
-    const formattedCategoryBreakdown = categoryBreakdown.map(cat => ({
-      category: cat.category,
-      amount: cat.total,
-      count: cat.count,
-      percentage: totalExpense > 0 ? parseFloat(((cat.total / totalExpense) * 100).toFixed(1)) : 0
-    }));
+    const formattedCategoryBreakdown = categoryBreakdown.map(cat => {
+      const amt = parseFloat(cat.total || 0);
+      const cnt = parseInt(cat.count || 0, 10);
+      return {
+        category: cat.category,
+        amount: amt,
+        count: cnt,
+        percentage: totalExpense > 0 ? parseFloat(((amt / totalExpense) * 100).toFixed(1)) : 0
+      };
+    });
 
-    // Monthly trends (Last 6 months)
+    // Monthly trends (Last 6 months) using universal SUBSTR
     const monthlyIncome = await query(
-      `SELECT strftime('%Y-%m', date) as month, SUM(amount) as income 
+      `SELECT SUBSTR(date, 1, 7) as month, SUM(amount) as income 
        FROM incomes 
        WHERE user_id = ? 
-       GROUP BY month 
+       GROUP BY SUBSTR(date, 1, 7) 
        ORDER BY month DESC 
        LIMIT 6`,
       [userId]
     );
 
     const monthlyExpenses = await query(
-      `SELECT strftime('%Y-%m', date) as month, SUM(amount) as expense 
+      `SELECT SUBSTR(date, 1, 7) as month, SUM(amount) as expense 
        FROM expenses 
        WHERE user_id = ? 
-       GROUP BY month 
+       GROUP BY SUBSTR(date, 1, 7) 
        ORDER BY month DESC 
        LIMIT 6`,
       [userId]
@@ -60,13 +64,15 @@ const getDashboardSummary = async (req, res) => {
     // Merge monthly trends
     const monthMap = {};
     monthlyIncome.forEach(item => {
-      monthMap[item.month] = { month: item.month, income: item.income, expense: 0 };
+      const inc = parseFloat(item.income || 0);
+      monthMap[item.month] = { month: item.month, income: inc, expense: 0 };
     });
     monthlyExpenses.forEach(item => {
+      const exp = parseFloat(item.expense || 0);
       if (!monthMap[item.month]) {
-        monthMap[item.month] = { month: item.month, income: 0, expense: item.expense };
+        monthMap[item.month] = { month: item.month, income: 0, expense: exp };
       } else {
-        monthMap[item.month].expense = item.expense;
+        monthMap[item.month].expense = exp;
       }
     });
 
@@ -77,6 +83,11 @@ const getDashboardSummary = async (req, res) => {
       'SELECT id, title, amount, category, date, payment_method FROM expenses WHERE user_id = ? ORDER BY date DESC, id DESC LIMIT 5',
       [userId]
     );
+
+    const formattedRecentExpenses = recentExpenses.map(exp => ({
+      ...exp,
+      amount: parseFloat(exp.amount || 0)
+    }));
 
     // Highest expense category
     const topCategory = formattedCategoryBreakdown.length > 0 ? formattedCategoryBreakdown[0] : null;
@@ -91,7 +102,7 @@ const getDashboardSummary = async (req, res) => {
       },
       categoryBreakdown: formattedCategoryBreakdown,
       monthlyTrends,
-      recentExpenses
+      recentExpenses: formattedRecentExpenses
     });
   } catch (err) {
     console.error('Analytics summary error:', err);
