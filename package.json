@@ -1,0 +1,15 @@
+{
+  "name": "spendwise-expense-tracker",
+  "version": "1.0.0",
+  "description": "Full-Stack Multi-User Expense Tracker Web Application",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev:backend": "cd backend && node server.js",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build"
+  },
+  "keywords": ["expense-tracker", "multi-user", "react", "sqlite", "express"],
+  "author": "",
+  "license": "ISC"
+}
