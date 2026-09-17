@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node backend/server.js",
     "install-all": "cd backend && npm install && cd ../frontend && npm install",
-    "build": "cd frontend && npm install && npm run build",
+    "build": "node -e \"const fs = require('fs'), cp = require('child_process'); if (fs.existsSync('frontend')) { cp.execSync('cd frontend && npm install && npm run build', {stdio: 'inherit'}); } else { cp.execSync('npm install && npx vite build', {stdio: 'inherit'}); }\"",
     "dev:backend": "cd backend && node server.js",
     "dev:frontend": "cd frontend && npm run dev"
   },
