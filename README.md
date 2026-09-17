@@ -229,3 +229,4 @@ http://localhost:5000
 
 ## 📜 License & Acknowledgments
 Built with ❤️ for managing personal finances easily and securely.
+Publish by Piyush Seth
