@@ -5,9 +5,10 @@
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",
+    "install-all": "cd backend && npm install && cd ../frontend && npm install",
+    "build": "cd frontend && npm install && npm run build",
     "dev:backend": "cd backend && node server.js",
-    "dev:frontend": "cd frontend && npm run dev",
-    "build": "cd frontend && npm run build"
+    "dev:frontend": "cd frontend && npm run dev"
   },
   "keywords": ["expense-tracker", "multi-user", "react", "sqlite", "express"],
   "author": "",
