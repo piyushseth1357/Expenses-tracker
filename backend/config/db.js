@@ -11,6 +11,9 @@ if (isPostgres) {
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: true }
   });
+  pool.on('error', (err) => {
+  console.error('Unexpected error on idle client:', err.message);
+  });
 
   pool.connect((err) => {
     if (err) {
