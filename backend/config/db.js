@@ -14,15 +14,7 @@ if (isPostgres) {
   pool.on('error', (err) => {
   console.error('Unexpected error on idle client:', err.message);
   });
-
-  pool.connect((err) => {
-    if (err) {
-      console.error('Error connecting to PostgreSQL database:', err.message);
-    } else {
-      console.log('Successfully connected to PostgreSQL database on Cloud.');
-    }
-  });
-
+  
   const convertPlaceholders = (sql) => {
     let i = 0;
     return sql.replace(/\?/g, () => `$${++i}`);
