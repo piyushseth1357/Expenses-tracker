@@ -1,4 +1,4 @@
-const path = require('path');
+lconst path = require('path');
 require('dotenv').config();
 
 const isPostgres = !!process.env.DATABASE_URL;
@@ -9,7 +9,7 @@ if (isPostgres) {
   const { Pool } = require('pg');
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
+    ssl: { rejectUnauthorized: true }
   });
 
   pool.connect((err) => {
