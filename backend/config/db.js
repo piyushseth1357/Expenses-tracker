@@ -1,4 +1,4 @@
-lconst path = require('path');
+const path = require('path');
 require('dotenv').config();
 
 const isPostgres = !!process.env.DATABASE_URL;
