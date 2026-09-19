@@ -20,15 +20,15 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/incomes', incomeRoutes);
-app.use('/api/expenses', expenseRoutes);
-app.use('/api/budgets', budgetRoutes);
-app.use('/api/analytics', analyticsRoutes);
+// Support both /api/route and /route path variations
+app.use(['/api/auth', '/auth'], authRoutes);
+app.use(['/api/incomes', '/incomes'], incomeRoutes);
+app.use(['/api/expenses', '/expenses'], expenseRoutes);
+app.use(['/api/budgets', '/budgets'], budgetRoutes);
+app.use(['/api/analytics', '/analytics'], analyticsRoutes);
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({ status: 'OK', message: 'Expense Tracker Backend API is running smoothly.' });
 });
 
