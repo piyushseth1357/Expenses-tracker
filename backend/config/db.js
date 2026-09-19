@@ -9,17 +9,12 @@ if (isPostgres) {
   const { Pool } = require('pg');
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
+    ssl: { rejectUnauthorized: true }
   });
-
-  pool.connect((err) => {
-    if (err) {
-      console.error('Error connecting to PostgreSQL database:', err.message);
-    } else {
-      console.log('Successfully connected to PostgreSQL database on Cloud.');
-    }
+  pool.on('error', (err) => {
+  console.error('Unexpected error on idle client:', err.message);
   });
-
+  
   const convertPlaceholders = (sql) => {
     let i = 0;
     return sql.replace(/\?/g, () => `$${++i}`);
